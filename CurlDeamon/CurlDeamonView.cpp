@@ -44,19 +44,34 @@ LRESULT CCurlDeamonView::OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 
 void CCurlDeamonView::getDlgItemsRelativePosition()
 {
-    const int dlgItemCount = 11;
+    const int dlgItemCount = 26;
     static int IDs[dlgItemCount] = {
-        IDC_EDIT_URL,
-        IDC_EDIT_SENDCONTENT,
-        IDC_DATETIMEPICKER_FROM,
-        IDC_DATETIMEPICKER_TO,
-        IDC_RICHEDIT_LOG,
         IDC_STATIC_URL,
+        IDC_STATIC_METHOD,
+        IDC_STATIC_REQUESTHEADER,
         IDC_STATIC_SENDCONTENT,
-        IDC_STATIC_RANDOMLY,
+        IDC_STATIC_TIMINGGROUP,
         IDC_STATIC_TO,
-        IDC_STATIC_IGNORE,
-        IDC_STATIC_LOG
+        IDC_BUTTON_EDIT_COOKIE,
+        IDC_BUTTON_EDIT_CONTENTTYPE,
+        IDC_BUTTON_EDIT_FORM,
+        IDC_BUTTON_EDIT_QUERYPARAM,
+        IDC_BUTTON_EXCUTE,
+        IDC_BUTTON_RESET,
+        IDC_BUTTON_CLEAR,
+        IDC_BUTTON_SHOWLOG,
+        IDC_CHECK_REPEAT,
+        IDC_CHECK_IGNOREHOLIDAY,
+        IDC_CHECK_LOADHOLIDAY,
+        IDC_CHECK_SENDRANDOMLY,
+        IDC_COMBO_METHOD,
+        IDC_COMBO_INTERVAL,
+        IDC_EDIT_URL,
+        IDC_EDIT_HEADERS,
+        IDC_EDIT_CONTENT,
+        IDC_EDIT_HOLIDAYURL,
+        IDC_DATETIMEPICKER_FROM,
+        IDC_DATETIMEPICKER_TO
     };
     if (m_itemRects.empty())
     {
@@ -99,13 +114,43 @@ LRESULT CCurlDeamonView::onDialogResize(UINT, WPARAM, LPARAM, BOOL&)
     LONG rightDeltaX = deltaX - leftDeltaX;
     LONG halfDeltaY = deltaY / 2;
 
+    // move controls
+    moveItem(IDC_BUTTON_EDIT_QUERYPARAM, deltaX, 0);
+    moveItem(IDC_BUTTON_EDIT_COOKIE, deltaX, 0);
+    moveItem(IDC_STATIC_SENDCONTENT, 0, halfDeltaY);
+    moveItem(IDC_BUTTON_EDIT_CONTENTTYPE, deltaX, 0);
+    moveItem(IDC_EDIT_CONTENT, 0, halfDeltaY);
+    moveItem(IDC_BUTTON_EDIT_FORM, deltaX, halfDeltaY);
+    moveItem(IDC_STATIC_TIMINGGROUP, 0, deltaY);
+    moveItem(IDC_CHECK_REPEAT, 0, deltaY);
+    moveItem(IDC_COMBO_INTERVAL, 0, deltaY);
+    moveItem(IDC_CHECK_IGNOREHOLIDAY, 0, deltaY);
+    moveItem(IDC_CHECK_LOADHOLIDAY, 0, deltaY);
+    moveItem(IDC_EDIT_HOLIDAYURL, 0, deltaY);
+    moveItem(IDC_CHECK_SENDRANDOMLY, 0, deltaY);
+    moveItem(IDC_DATETIMEPICKER_FROM, 0, deltaY);
+    moveItem(IDC_STATIC_TO, 0, deltaY);
+    moveItem(IDC_DATETIMEPICKER_TO, 0, deltaY);
+    moveItem(IDC_BUTTON_EXCUTE, deltaX, deltaY);
+    moveItem(IDC_BUTTON_RESET, deltaX, deltaY);
+    moveItem(IDC_BUTTON_CLEAR, deltaX, deltaY);
+    moveItem(IDC_BUTTON_SHOWLOG, deltaX, deltaY);
+
     // resize edit controls
     resizeItem(IDC_EDIT_URL, deltaX, 0);
-    resizeItem(IDC_EDIT_SENDCONTENT, deltaX, 0);
-    // resize log edit
-    resizeItem(IDC_RICHEDIT_LOG, deltaX, deltaY);
+    resizeItem(IDC_EDIT_HEADERS, deltaX, halfDeltaY);
+    resizeItem(IDC_EDIT_CONTENT, deltaX, halfDeltaY);
+    resizeItem(IDC_STATIC_TIMINGGROUP, deltaX, 0);
+    resizeItem(IDC_EDIT_HOLIDAYURL, deltaX, 0);
 
     // force repaint dialog items
     Invalidate(true);
     return 0;
+}
+
+LRESULT CCurlDeamonView::OnBnClickedButtonExcute(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	// TODO: Add your control notification handler code here
+
+	return 0;
 }

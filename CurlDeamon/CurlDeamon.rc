@@ -13,13 +13,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -51,7 +49,7 @@ END
 // Menu
 //
 
-IDR_MAINFRAME MENU 
+IDR_MAINFRAME MENU
 BEGIN
     POPUP "&File"
     BEGIN
@@ -76,9 +74,10 @@ BEGIN
     END
     POPUP "&Help"
     BEGIN
-        MENUITEM "&About CurlDeamon",              ID_APP_ABOUT
+        MENUITEM "&About CurlDeamon",           ID_APP_ABOUT
     END
 END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -89,39 +88,63 @@ END
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON                    "res\\CurlDeamon.ico"
 
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOG  0, 0, 187, 102
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_ABOUTBOX DIALOGEX 0, 0, 187, 102
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,130,81,50,14
-    CTEXT           "CurlDeamon Application v1.0\n\n(c) Copyright 2014",IDC_STATIC,25,57,78,
-                    32
-    ICON            IDR_MAINFRAME,IDC_STATIC,55,26,18,20
+    CTEXT           "CurlDeamon v1.0\n\n(c) Copyright 2014 -2016",IDC_STATIC,14,57,99,32
+    ICON            IDR_MAINFRAME,IDC_STATIC,55,26,20,20
     GROUPBOX        "",IDC_STATIC,7,7,115,88
 END
 
-IDD_MAIN_DIALOG DIALOGEX 0, 0, 456, 295
+IDD_MAIN_DIALOG DIALOGEX 0, 0, 463, 313
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS
-FONT 8, "Ms Shell Dlg"
-{
-    LTEXT           "URL", IDC_STATIC_URL, 36, 7, 14, 8, SS_LEFT
-    EDITTEXT        IDC_EDIT_URL, 55, 5, 385, 12, ES_AUTOHSCROLL
-    LTEXT           "Form Data", IDC_STATIC_SENDCONTENT, 17, 36, 33, 8, SS_LEFT
-    EDITTEXT        IDC_EDIT_SENDCONTENT, 55, 35, 385, 12, ES_AUTOHSCROLL
-    LTEXT           "Send randomly", IDC_STATIC_RANDOMLY, 2, 73, 48, 8, SS_LEFT
-    CONTROL         "", IDC_DATETIMEPICKER_FROM, "SysDateTimePick32", WS_TABSTOP | DTS_TIMEFORMAT | DTS_UPDOWN | DTS_RIGHTALIGN, 55, 70, 100, 15
-    LTEXT           "-", IDC_STATIC_TO, 170, 73, 5, 8, SS_LEFT
-    CONTROL         "", IDC_DATETIMEPICKER_TO, "SysDateTimePick32", WS_TABSTOP | DTS_TIMEFORMAT | DTS_UPDOWN | DTS_RIGHTALIGN, 190, 70, 100, 15
-    LTEXT           "(Ignore Saturday and Sunday)", IDC_STATIC_IGNORE, 310, 73, 102, 8, SS_LEFT
-    GROUPBOX        "Log", IDC_STATIC_LOG, 5, 115, 445, 175
-    EDITTEXT        IDC_RICHEDIT_LOG, 10, 125, 435, 160, ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_READONLY | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
-}
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_EDIT_URL,55,5,305,17,ES_AUTOHSCROLL
+    PUSHBUTTON      "Edit QueryParameter",IDC_BUTTON_EDIT_QUERYPARAM,373,5,75,17
+    COMBOBOX        IDC_COMBO_METHOD,55,32,94,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_EDIT_HEADERS,55,56,305,49,ES_MULTILINE | ES_AUTOHSCROLL | WS_VSCROLL
+    PUSHBUTTON      "Edit Cookie",IDC_BUTTON_EDIT_COOKIE,373,56,75,17
+    PUSHBUTTON      "Edit ContentType",IDC_BUTTON_EDIT_CONTENTTYPE,373,88,75,17
+    EDITTEXT        IDC_EDIT_CONTENT,55,117,305,49,ES_MULTILINE | ES_AUTOHSCROLL | WS_DISABLED | WS_VSCROLL
+    PUSHBUTTON      "Edit FormData",IDC_BUTTON_EDIT_FORM,373,117,75,17,WS_DISABLED
+    CONTROL         "Repeat",IDC_CHECK_REPEAT,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,55,185,39,10
+    COMBOBOX        IDC_COMBO_INTERVAL,165,185,48,12,CBS_DROPDOWNLIST | CBS_SORT | WS_DISABLED | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Ignore holiday",IDC_CHECK_IGNOREHOLIDAY,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,55,207,62,10
+    CONTROL         "Load holidays before sending",IDC_CHECK_LOADHOLIDAY,
+                    "Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,55,229,109,10
+    EDITTEXT        IDC_EDIT_HOLIDAYURL,165,229,195,14,ES_AUTOHSCROLL | WS_DISABLED
+    CONTROL         "Send randomly",IDC_CHECK_SENDRANDOMLY,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,55,251,63,10
+    CONTROL         "",IDC_DATETIMEPICKER_FROM,"SysDateTimePick32",DTS_RIGHTALIGN | DTS_UPDOWN | WS_DISABLED | WS_TABSTOP | 0x8,165,251,48,12
+    CONTROL         "",IDC_DATETIMEPICKER_TO,"SysDateTimePick32",DTS_RIGHTALIGN | DTS_UPDOWN | WS_DISABLED | WS_TABSTOP | 0x8,259,251,48,12
+    PUSHBUTTON      "Save && Excute",IDC_BUTTON_EXCUTE,35,286,75,17
+    PUSHBUTTON      "Reset",IDC_BUTTON_RESET,133,286,75,17
+    PUSHBUTTON      "Clear",IDC_BUTTON_CLEAR,231,286,75,17
+    PUSHBUTTON      "Show Log",IDC_BUTTON_SHOWLOG,329,286,75,17
+    LTEXT           "URL",IDC_STATIC_URL,37,5,14,8
+    LTEXT           "Method",IDC_STATIC_METHOD,26,33,25,8
+    RTEXT           "Request Headers",IDC_STATIC_REQUESTHEADER,19,56,32,18
+    RTEXT           "Sending Content",IDC_STATIC_SENDCONTENT,20,117,31,17
+    GROUPBOX        "Timing",IDC_STATIC_TIMINGGROUP,13,173,435,105
+    LTEXT           "-",IDC_STATIC_TO,232,251,8,8
+END
+
+IDD_LOG_DIALOG DIALOGEX 0, 0, 505, 294
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "CurlDeamon - Log"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_RICHEDIT_LOG,7,7,491,280,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_READONLY | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
+END
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -130,7 +153,7 @@ FONT 8, "Ms Shell Dlg"
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_ABOUTBOX, DIALOG
     BEGIN
@@ -138,6 +161,19 @@ BEGIN
         RIGHTMARGIN, 180
         TOPMARGIN, 7
         BOTTOMMARGIN, 95
+    END
+
+    IDD_MAIN_DIALOG, DIALOG
+    BEGIN
+        RIGHTMARGIN, 456
+    END
+
+    IDD_LOG_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 498
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 287
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -148,7 +184,7 @@ END
 // Accelerator
 //
 
-IDR_MAINFRAME ACCELERATORS 
+IDR_MAINFRAME ACCELERATORS
 BEGIN
     "N",            ID_FILE_NEW,            VIRTKEY, CONTROL
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL
@@ -189,33 +225,54 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "CompanyName", "\0"
-            VALUE "FileDescription", "CurlDeamon Module\0"
-            VALUE "FileVersion", "1, 0, 0, 1\0"
-            VALUE "InternalName", "CurlDeamon\0"
-            VALUE "LegalCopyright", "Copyright 2014\0"
-            VALUE "OriginalFilename", "CurlDeamon.exe\0"
-            VALUE "ProductName", "CurlDeamon Module\0"
-            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "FileDescription", "CurlDeamon Module"
+            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "InternalName", "CurlDeamon"
+            VALUE "LegalCopyright", "Copyright 2014"
+            VALUE "OriginalFilename", "CurlDeamon.exe"
+            VALUE "ProductName", "CurlDeamon Module"
+            VALUE "ProductVersion", "1, 0, 0, 1"
         END
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x0409, 0x04B0
+        VALUE "Translation", 0x409, 1200
     END
 END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_MAIN_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_LOG_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_ABOUTBOX AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // String Table
 //
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
-    IDR_MAINFRAME    "CurlDeamon"
+    IDR_MAINFRAME           "CurlDeamon"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     ID_FILE_NEW             "Create a new document\nNew"
     ID_FILE_OPEN            "Open an existing document\nOpen"
@@ -228,19 +285,19 @@ BEGIN
     ID_FILE_PRINT_PREVIEW   "Display full pages\nPrint Preview"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
     ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
     ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     ID_WINDOW_NEW           "Open another window for the active document\nNew Window"
     ID_WINDOW_ARRANGE       "Arrange icons at the bottom of the window\nArrange Icons"
@@ -250,7 +307,7 @@ BEGIN
     ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     ID_EDIT_CLEAR           "Erase the selection\nErase"
     ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
@@ -265,7 +322,7 @@ BEGIN
     ID_EDIT_REDO            "Redo the previously undone action\nRedo"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     ATL_IDS_SCSIZE          "Change the window size"
     ATL_IDS_SCMOVE          "Change the window position"
@@ -276,22 +333,24 @@ BEGIN
     ATL_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     ATL_IDS_SCRESTORE       "Restore the window to normal size"
     ATL_IDS_SCTASKLIST      "Activate Task List"
     ATL_IDS_MDICHILD        "Activate this window"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     ATL_IDS_IDLEMESSAGE     "Ready"
+END
+
+STRINGTABLE
+BEGIN
     ATL_IDS_MRU_FILE        "Open this document"
 END
 
-#endif    // English (U.S.) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
-#ifndef APSTUDIO_INVOKED
-#endif    // not APSTUDIO_INVOKED

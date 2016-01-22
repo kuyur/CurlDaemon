@@ -10,7 +10,7 @@ class CCurlDeamonView : public CDialogImpl<CCurlDeamonView>, public CUpdateUI<CC
 {
 private:
     std::unordered_map<int, RECT> m_itemRects; // Orignal size of dialog items
-    RECT            m_dlgRect;                 // Orinal rect of dialog
+    RECT m_dlgRect;                            // Orinal rect of dialog
 
 public:
     enum { IDD = IDD_MAIN_DIALOG };
@@ -28,7 +28,8 @@ public:
         MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
         MESSAGE_HANDLER(WM_SIZE, onDialogResize)
         COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
-    END_MSG_MAP()
+		COMMAND_HANDLER(IDC_BUTTON_EXCUTE, BN_CLICKED, OnBnClickedButtonExcute)
+	END_MSG_MAP()
 
     // DDX
     BEGIN_DDX_MAP(CCurlDeamonView)
@@ -47,4 +48,6 @@ private:
     void getDlgItemsRelativePosition();
     void moveItem(int itemId, int deltaX, int deltaY);
     void resizeItem(int itemId, int deltaX, int deltaY);
+public:
+	LRESULT OnBnClickedButtonExcute(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 };
