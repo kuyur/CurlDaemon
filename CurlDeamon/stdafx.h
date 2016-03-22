@@ -5,6 +5,20 @@
 
 #pragma once
 
+#include <curl/curl.h>
+#include <c4lib/c4context.h>
+
+#ifdef _DEBUG
+#pragma comment(lib, "../deps/lib/libcurl_a_debug.lib")
+#pragma comment(lib, "../deps/lib/c4_a_debug.lib")
+#else
+#pragma comment(lib, "../deps/lib/libcurl_a.lib")
+#pragma comment(lib, "../deps/lib/c4_a.lib")
+#endif
+
+#pragma comment(lib, "../deps/lib/libeay32.lib")
+#pragma comment(lib, "../deps/lib/ssleay32.lib")
+
 // Change these values to use different versions
 #define WINVER          0x0500
 #define _WIN32_WINNT    0x0501

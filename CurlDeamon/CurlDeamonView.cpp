@@ -150,7 +150,105 @@ LRESULT CCurlDeamonView::onDialogResize(UINT, WPARAM, LPARAM, BOOL&)
 
 LRESULT CCurlDeamonView::OnBnClickedButtonExcute(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-    // TODO: Add your control notification handler code here
+    char errorBuffer[CURL_ERROR_SIZE];
+    std::string buffer;
 
+    CURL *conn = curl_easy_init();
+    CURLcode code;
+    if (initCurlConn(conn, errorBuffer, &buffer))
+    {
+        code = curl_easy_perform(conn);
+    }
+    if (conn != NULL)
+    {
+        curl_easy_cleanup(conn);
+    }
+    WTL::CString buf(buffer.c_str());
+    MessageBox(buf);
     return 0;
+}
+
+static int writer(char *data, size_t size, size_t nmemb, std::string *writerData)
+{
+    if (writerData == NULL)
+        return 0;
+
+    writerData->append(data, size * nmemb);
+
+    return size * nmemb;
+}
+
+bool CCurlDeamonView::initCurlConn(CURL *conn, char *errorBuffer, std::string *buffer)
+{
+    ATL::CWindow edit = GetDlgItem(IDC_EDIT_URL);
+    int len = edit.GetWindowTextLengthW();
+    wchar_t *url = new wchar_t[len + 1];
+    url[len] = L'\0';
+    edit.GetWindowTextW(url, len + 1);
+    std::string utf8url = CC4EncodeUTF16::convert2utf8(url, len);
+
+    // TODO Get method.
+
+    CURLcode code;
+
+    if (conn == NULL)
+    {
+        MessageBox(L"Failed to create CURL connection.");
+        return false;
+    }
+
+    code = curl_easy_setopt(conn, CURLOPT_ERRORBUFFER, errorBuffer);
+    if (code != CURLE_OK)
+    {
+        MessageBox(L"Failed to set error buffer.");
+        return false;
+    }
+
+    code = curl_easy_setopt(conn, CURLOPT_URL, utf8url.c_str());
+    if (code != CURLE_OK)
+    {
+        MessageBox(L"Failed to set URL.");
+        return false;
+    }
+
+    if (strncmp(utf8url.c_str(), "https://", 8) == 0)
+    {
+        code = curl_easy_setopt(conn, CURLOPT_SSL_VERIFYPEER, 0L);
+        if (code != CURLE_OK)
+        {
+            MessageBox(L"Failed to set SSL.");
+            return false;
+        }
+    }
+
+    bool isPost = true;
+    if (isPost)
+    {
+        static const char *fields = "foo bar";
+        code = curl_easy_setopt(conn, CURLOPT_POSTFIELDS, fields);
+        code = curl_easy_setopt(conn, CURLOPT_POSTFIELDSIZE, (long)strlen(fields));
+    }
+
+    code = curl_easy_setopt(conn, CURLOPT_FOLLOWLOCATION, 1L);
+    if (code != CURLE_OK)
+    {
+        MessageBox(L"Failed to set redirect option.");
+        return false;
+    }
+
+    code = curl_easy_setopt(conn, CURLOPT_WRITEFUNCTION, writer);
+    if (code != CURLE_OK)
+    {
+        MessageBox(L"Failed to set writer.");
+        return false;
+    }
+
+    code = curl_easy_setopt(conn, CURLOPT_WRITEDATA, buffer);
+    if (code != CURLE_OK)
+    {
+        MessageBox(L"Failed to set write data.");
+        return false;
+    }
+
+    return true;
 }

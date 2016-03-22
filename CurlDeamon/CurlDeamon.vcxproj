@@ -42,11 +42,15 @@
     <IntDir>Debug\</IntDir>
     <OutDir>Debug\</OutDir>
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(SolutionDir)deps\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)deps\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IntDir>Release\</IntDir>
     <OutDir>Release\</OutDir>
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(SolutionDir)deps\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)deps\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -57,12 +61,13 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;_DEBUG;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>ws2_32.lib;wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -91,11 +96,13 @@
       </ExceptionHandling>
       <DebugInformationFormat>
       </DebugInformationFormat>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;NDEBUG;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>ws2_32.lib;wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <ResourceCompile>
       <Culture>0x0409</Culture>
