@@ -150,7 +150,7 @@ LRESULT CCurlDeamonView::onDialogResize(UINT, WPARAM, LPARAM, BOOL&)
 
 LRESULT CCurlDeamonView::OnBnClickedButtonExcute(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	// TODO: Add your control notification handler code here
+    // TODO: Add your control notification handler code here
 
-	return 0;
+    return 0;
 }

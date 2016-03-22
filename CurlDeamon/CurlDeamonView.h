@@ -28,8 +28,8 @@ public:
         MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
         MESSAGE_HANDLER(WM_SIZE, onDialogResize)
         COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
-		COMMAND_HANDLER(IDC_BUTTON_EXCUTE, BN_CLICKED, OnBnClickedButtonExcute)
-	END_MSG_MAP()
+        COMMAND_HANDLER(IDC_BUTTON_EXCUTE, BN_CLICKED, OnBnClickedButtonExcute)
+    END_MSG_MAP()
 
     // DDX
     BEGIN_DDX_MAP(CCurlDeamonView)
@@ -49,5 +49,5 @@ private:
     void moveItem(int itemId, int deltaX, int deltaY);
     void resizeItem(int itemId, int deltaX, int deltaY);
 public:
-	LRESULT OnBnClickedButtonExcute(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+    LRESULT OnBnClickedButtonExcute(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 };
