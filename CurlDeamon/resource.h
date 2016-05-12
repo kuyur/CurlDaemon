@@ -25,11 +25,11 @@
 #define IDC_CHECK_LOADHOLIDAY           1022
 #define IDC_CHECK_SENDRANDOMLY          1023
 #define IDC_COMBO_METHOD                1030
-#define IDC_COMBO_INTERVAL              1031
 #define IDC_EDIT_URL                    1040
 #define IDC_EDIT_HEADERS                1041
 #define IDC_EDIT_CONTENT                1042
 #define IDC_EDIT_HOLIDAYURL             1043
+#define IDC_EDIT_CRONCONFIG             1044
 #define IDC_DATETIMEPICKER_FROM         1050
 #define IDC_DATETIMEPICKER_TO           1051
 #define IDC_RICHEDIT_LOG                1060

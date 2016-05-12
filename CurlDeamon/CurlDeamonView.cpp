@@ -65,7 +65,7 @@ void CCurlDeamonView::getDlgItemsRelativePosition()
         IDC_CHECK_LOADHOLIDAY,
         IDC_CHECK_SENDRANDOMLY,
         IDC_COMBO_METHOD,
-        IDC_COMBO_INTERVAL,
+        IDC_EDIT_CRONCONFIG,
         IDC_EDIT_URL,
         IDC_EDIT_HEADERS,
         IDC_EDIT_CONTENT,
@@ -123,7 +123,7 @@ LRESULT CCurlDeamonView::onDialogResize(UINT, WPARAM, LPARAM, BOOL&)
     moveItem(IDC_BUTTON_EDIT_FORM, deltaX, halfDeltaY);
     moveItem(IDC_STATIC_TIMINGGROUP, 0, deltaY);
     moveItem(IDC_CHECK_REPEAT, 0, deltaY);
-    moveItem(IDC_COMBO_INTERVAL, 0, deltaY);
+    moveItem(IDC_EDIT_CRONCONFIG, 0, deltaY);
     moveItem(IDC_CHECK_IGNOREHOLIDAY, 0, deltaY);
     moveItem(IDC_CHECK_LOADHOLIDAY, 0, deltaY);
     moveItem(IDC_EDIT_HOLIDAYURL, 0, deltaY);

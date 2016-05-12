@@ -3,7 +3,14 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+
+#ifndef CURLDEAMONVIEW_H_
+#define CURLDEAMONVIEW_H_
+
 #include <unordered_map>
+#include "config.h"
+
+extern CConfig _Config;
 
 class CCurlDeamonView : public CDialogImpl<CCurlDeamonView>, public CUpdateUI<CCurlDeamonView>,
         public CMessageFilter, public CIdleHandler, public CWinDataExchange<CCurlDeamonView>
@@ -11,6 +18,7 @@ class CCurlDeamonView : public CDialogImpl<CCurlDeamonView>, public CUpdateUI<CC
 private:
     std::unordered_map<int, RECT> m_itemRects; // Orignal size of dialog items
     RECT m_dlgRect;                            // Orinal rect of dialog
+    int m_httpMethodIndex;
 
 public:
     enum { IDD = IDD_MAIN_DIALOG };
@@ -33,6 +41,9 @@ public:
 
     // DDX
     BEGIN_DDX_MAP(CCurlDeamonView)
+        DDX_TEXT(IDC_EDIT_URL, _Config.http_url)
+        DDX_COMBO_INDEX(IDC_COMBO_METHOD, m_httpMethodIndex)
+        DDX_TEXT(IDC_EDIT_CONTENT, _Config.http_sending_content)
     END_DDX_MAP()
 
 // Handler prototypes (uncomment arguments if needed):
@@ -52,3 +63,5 @@ private:
 public:
     LRESULT OnBnClickedButtonExcute(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 };
+
+#endif
