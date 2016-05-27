@@ -54,11 +54,6 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
     CMessageLoop theLoop;
     _Module.AddMessageLoop(&theLoop);
 
-    // load config
-    WTL::CString config_path(GetProcessFolder());
-    config_path += L"config-curl-deamon.xml";
-
-    load_config(config_path);
     CMainFrame wndMain;
 
     if(wndMain.CreateEx() == NULL)
@@ -91,7 +86,13 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
     hRes = _Module.Init(NULL, hInstance);
     ATLASSERT(SUCCEEDED(hRes));
 
+    // load config
+    WTL::CString config_path(GetProcessFolder());
+    config_path += L"config-curl-deamon.xml";
+    load_config(config_path);
+
     int nRet = Run(lpstrCmdLine, nCmdShow);
+    save_config_file(config_path, _Config);
 
     _Module.Term();
     ::CoUninitialize();

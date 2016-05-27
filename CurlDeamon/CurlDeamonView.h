@@ -59,6 +59,7 @@ private:
     void getDlgItemsRelativePosition();
     void moveItem(int itemId, int deltaX, int deltaY);
     void resizeItem(int itemId, int deltaX, int deltaY);
+    void updateConfig();
     bool initCurlConn(CURL *conn, char *errorBuffer, std::string *buffer);
 public:
     LRESULT OnBnClickedButtonExcute(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);

@@ -18,70 +18,74 @@ BOOL load_config_file(TiXmlDocument * xmlfile, CConfig & config)
     // http-url node
     pElem = hXmlHandler.FirstChild("http-url").Element();
     if (!pElem) return FALSE;
-    if (!pElem->GetText()) return FALSE;
-    config.http_url = CC4EncodeUTF8::convert2unicode(pElem->GetText(), strlen(pElem->GetText())).c_str();
+    if (pElem->GetText())
+        config.http_url = CC4EncodeUTF8::convert2unicode(pElem->GetText(), strlen(pElem->GetText())).c_str();
 
     // http-method node
     pElem = hXmlHandler.FirstChild("http-method").Element();
     if (!pElem) return FALSE;
-    if (!pElem->GetText()) return FALSE;
-    if (_stricmp(pElem->GetText(), "GET") == 0)
-        config.http_method = HTTP_GET;
-    else if (_stricmp(pElem->GetText(), "POST") == 0)
-        config.http_method = HTTP_POST;
-    else if (_stricmp(pElem->GetText(), "PUT") == 0)
-        config.http_method = HTTP_PUT;
-    else if (_stricmp(pElem->GetText(), "DELETE") == 0)
-        config.http_method = HTTP_DELETE;
-    else if (_stricmp(pElem->GetText(), "HEAD") == 0)
-        config.http_method = HTTP_HEAD;
-    else if (_stricmp(pElem->GetText(), "OPTIONS") == 0)
-        config.http_method = HTTP_OPTIONS;
-    else
-        config.http_method = HTTP_GET;
+    if (pElem->GetText())
+    {
+        if (_stricmp(pElem->GetText(), "GET") == 0)
+            config.http_method = HTTP_GET;
+        else if (_stricmp(pElem->GetText(), "POST") == 0)
+            config.http_method = HTTP_POST;
+        else if (_stricmp(pElem->GetText(), "PUT") == 0)
+            config.http_method = HTTP_PUT;
+        else if (_stricmp(pElem->GetText(), "DELETE") == 0)
+            config.http_method = HTTP_DELETE;
+        else if (_stricmp(pElem->GetText(), "HEAD") == 0)
+            config.http_method = HTTP_HEAD;
+        else if (_stricmp(pElem->GetText(), "OPTIONS") == 0)
+            config.http_method = HTTP_OPTIONS;
+        else
+            config.http_method = HTTP_GET;
+    }
 
     // http-sending-content node
     pElem = hXmlHandler.FirstChild("http-sending-content").Element();
     if (!pElem) return FALSE;
-    if (!pElem->GetText()) return FALSE;
-    config.http_sending_content = CC4EncodeUTF8::convert2unicode(pElem->GetText(), strlen(pElem->GetText())).c_str();
+    if (pElem->GetText())
+        config.http_sending_content = CC4EncodeUTF8::convert2unicode(pElem->GetText(), strlen(pElem->GetText())).c_str();
 
     // schedule-repeat-type node
     pElem = hXmlHandler.FirstChild("schedule-repeat-type").Element();
     if (!pElem) return FALSE;
-    if (!pElem->GetText()) return FALSE;
-    config.schedule_repeat_cron_like = _stricmp(pElem->GetText(), "cron-like") == 0;
-    config.schedule_repeat_randomly = _stricmp(pElem->GetText(), "randomly") == 0;
+    if (pElem->GetText())
+    {
+        config.schedule_repeat_cron_like = _stricmp(pElem->GetText(), "cron-like") == 0;
+        config.schedule_repeat_randomly = _stricmp(pElem->GetText(), "randomly") == 0;
+    }
 
     // schedule-ignore-holiday node
     pElem = hXmlHandler.FirstChild("schedule-ignore-holiday").Element();
     if (!pElem) return FALSE;
-    if (!pElem->GetText()) return FALSE;
-    config.schedule_ignore_holiday = _stricmp(pElem->GetText(), "true") == 0;
+    if (pElem->GetText())
+        config.schedule_ignore_holiday = _stricmp(pElem->GetText(), "true") == 0;
 
     // schedule-load-holiday node
     pElem = hXmlHandler.FirstChild("schedule-load-holiday").Element();
     if (!pElem) return FALSE;
-    if (!pElem->GetText()) return FALSE;
-    config.schedule_load_holiday = _stricmp(pElem->GetText(), "true") == 0;
+    if (pElem->GetText())
+        config.schedule_load_holiday = _stricmp(pElem->GetText(), "true") == 0;
 
     // schedule-holiday-url node
     pElem = hXmlHandler.FirstChild("schedule-holiday-url").Element();
     if (!pElem) return FALSE;
-    if (!pElem->GetText()) return FALSE;
-    config.schedule_holiday_url = CC4EncodeUTF8::convert2unicode(pElem->GetText(), strlen(pElem->GetText())).c_str();
+    if (pElem->GetText())
+        config.schedule_holiday_url = CC4EncodeUTF8::convert2unicode(pElem->GetText(), strlen(pElem->GetText())).c_str();
 
     // schedule-randomly-start node
     pElem = hXmlHandler.FirstChild("schedule-randomly-start").Element();
     if (!pElem) return FALSE;
-    if (!pElem->GetText()) return FALSE;
-    config.schedule_randomly_start = CC4EncodeUTF8::convert2unicode(pElem->GetText(), strlen(pElem->GetText())).c_str();
+    if (pElem->GetText())
+        config.schedule_randomly_start = CC4EncodeUTF8::convert2unicode(pElem->GetText(), strlen(pElem->GetText())).c_str();
 
     // schedule-randomly-end node
     pElem = hXmlHandler.FirstChild("schedule-randomly-end").Element();
     if (!pElem) return FALSE;
-    if (!pElem->GetText()) return FALSE;
-    config.schedule_randomly_end = CC4EncodeUTF8::convert2unicode(pElem->GetText(), strlen(pElem->GetText())).c_str();
+    if (pElem->GetText())
+        config.schedule_randomly_end = CC4EncodeUTF8::convert2unicode(pElem->GetText(), strlen(pElem->GetText())).c_str();
 
     return TRUE;
 }

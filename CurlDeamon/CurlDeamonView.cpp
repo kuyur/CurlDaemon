@@ -30,11 +30,27 @@ LRESULT CCurlDeamonView::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
     // Get orignal size of dialog items
     getDlgItemsRelativePosition();
 
-    return 1;
+    // add method options
+    CComboBox combo = (CComboBox)GetDlgItem(IDC_COMBO_METHOD);
+    combo.InsertString(-1, L"GET");
+    combo.InsertString(-1, L"POST");
+    combo.InsertString(-1, L"PUT");
+    combo.InsertString(-1, L"DELETE");
+    combo.InsertString(-1, L"HEAD");
+    combo.InsertString(-1, L"OPTIONS");
+    combo.SetCurSel(static_cast<int>(_Config.http_method));
+
+    // focus on excute button
+    CButton button = (CButton)GetDlgItem(IDC_BUTTON_EXCUTE);
+    button.SetFocus();
+
+    return FALSE;
 }
 
 LRESULT CCurlDeamonView::OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
+    updateConfig();
+
     // Get parent frame
     CWindow* parent = &GetParent();
     parent->PostMessage(WM_CLOSE);
@@ -150,6 +166,8 @@ LRESULT CCurlDeamonView::onDialogResize(UINT, WPARAM, LPARAM, BOOL&)
 
 LRESULT CCurlDeamonView::OnBnClickedButtonExcute(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
+    updateConfig();
+
     char errorBuffer[CURL_ERROR_SIZE];
     std::string buffer;
 
@@ -187,8 +205,6 @@ bool CCurlDeamonView::initCurlConn(CURL *conn, char *errorBuffer, std::string *b
     edit.GetWindowTextW(url, len + 1);
     std::string utf8url = CC4EncodeUTF16::convert2utf8(url, len);
 
-    // TODO Get method.
-
     CURLcode code;
 
     if (conn == NULL)
@@ -221,12 +237,25 @@ bool CCurlDeamonView::initCurlConn(CURL *conn, char *errorBuffer, std::string *b
         }
     }
 
-    bool isPost = true;
-    if (isPost)
+    // http method
+    if (_Config.http_method == HTTP_GET)
+        curl_easy_setopt(conn, CURLOPT_HTTPGET, 1L);
+    else if (_Config.http_method == HTTP_PUT)
+        curl_easy_setopt(conn, CURLOPT_CUSTOMREQUEST, "PUT");
+    else if (_Config.http_method == HTTP_DELETE)
+        curl_easy_setopt(conn, CURLOPT_CUSTOMREQUEST, "DELETE");
+    else if (_Config.http_method == HTTP_HEAD)
+        curl_easy_setopt(conn, CURLOPT_NOBODY, 1L);
+    else if (_Config.http_method == HTTP_OPTIONS)
+        curl_easy_setopt(conn, CURLOPT_CUSTOMREQUEST, "OPTIONS");
+
+    if (_Config.http_method == HTTP_POST)
     {
+        // POST without fields
+        // curl_easy_setopt(conn, CURLOPT_POST, 1L);
         static const char *fields = "foo bar";
-        code = curl_easy_setopt(conn, CURLOPT_POSTFIELDS, fields);
-        code = curl_easy_setopt(conn, CURLOPT_POSTFIELDSIZE, (long)strlen(fields));
+        curl_easy_setopt(conn, CURLOPT_POSTFIELDS, fields);
+        curl_easy_setopt(conn, CURLOPT_POSTFIELDSIZE, (long)strlen(fields));
     }
 
     code = curl_easy_setopt(conn, CURLOPT_FOLLOWLOCATION, 1L);
@@ -251,4 +280,11 @@ bool CCurlDeamonView::initCurlConn(CURL *conn, char *errorBuffer, std::string *b
     }
 
     return true;
+}
+
+void CCurlDeamonView::updateConfig()
+{
+    DoDataExchange(true);
+
+    _Config.http_method = static_cast<HTTP_METHOD>(m_httpMethodIndex);
 }
