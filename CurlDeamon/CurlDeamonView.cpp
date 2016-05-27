@@ -67,6 +67,32 @@ LRESULT CCurlDeamonView::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
         }
     }
 
+    GetDlgItem(IDC_DATETIMEPICKER_FROM).EnableWindow(_Config.schedule_repeat_randomly);
+    GetDlgItem(IDC_DATETIMEPICKER_TO).EnableWindow(_Config.schedule_repeat_randomly);
+    GetDlgItem(IDC_CHECK_IGNOREHOLIDAY).EnableWindow(_Config.schedule_repeat_randomly);
+    GetDlgItem(IDC_CHECK_LOADHOLIDAY).EnableWindow(_Config.schedule_repeat_randomly);
+    GetDlgItem(IDC_EDIT_HOLIDAYURL).EnableWindow(_Config.schedule_repeat_randomly && _Config.schedule_load_holiday);
+
+    // timer pickers
+
+    time_t t = time(0);
+    struct tm *now = localtime(&t);
+    SYSTEMTIME from_time = { 0 };
+    from_time.wYear = now->tm_year + 1900;
+    from_time.wMonth = now->tm_mon + 1;
+    from_time.wDay = now->tm_mday;
+    from_time.wHour = 11;
+    from_time.wMinute = 0;
+    from_time.wSecond = 0;
+    SYSTEMTIME to_time(from_time);
+    to_time.wHour = 11;
+    to_time.wMinute = 30;
+    to_time.wSecond = 0;
+    CDateTimePickerCtrl from_time_picker = (CDateTimePickerCtrl)GetDlgItem(IDC_DATETIMEPICKER_FROM);
+    CDateTimePickerCtrl to_time_picker = (CDateTimePickerCtrl)GetDlgItem(IDC_DATETIMEPICKER_TO);
+    from_time_picker.SetSystemTime(GDT_VALID, &from_time);
+    to_time_picker.SetSystemTime(GDT_VALID, &to_time);
+
     // focus on excute button
     CButton button = (CButton)GetDlgItem(IDC_BUTTON_EXCUTE);
     button.SetFocus();
@@ -341,6 +367,28 @@ LRESULT CCurlDeamonView::OnCbnSelchangeComboMethod(WORD /*wNotifyCode*/, WORD /*
     _Config.http_method = static_cast<HTTP_METHOD>(combo.GetCurSel());
 
     GetDlgItem(IDC_EDIT_CONTENT).EnableWindow(_Config.http_method == HTTP_POST || _Config.http_method == HTTP_PUT);
+
+    return 0;
+}
+
+LRESULT CCurlDeamonView::OnBnClickedCheckSendrandomly(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+    CButton checkbox = (CButton)GetDlgItem(IDC_CHECK_SENDRANDOMLY);
+    _Config.schedule_repeat_randomly = checkbox.GetCheck() != 0;
+    GetDlgItem(IDC_DATETIMEPICKER_FROM).EnableWindow(_Config.schedule_repeat_randomly);
+    GetDlgItem(IDC_DATETIMEPICKER_TO).EnableWindow(_Config.schedule_repeat_randomly);
+    GetDlgItem(IDC_CHECK_IGNOREHOLIDAY).EnableWindow(_Config.schedule_repeat_randomly);
+    GetDlgItem(IDC_CHECK_LOADHOLIDAY).EnableWindow(_Config.schedule_repeat_randomly);
+    GetDlgItem(IDC_EDIT_HOLIDAYURL).EnableWindow(_Config.schedule_repeat_randomly && _Config.schedule_load_holiday);
+
+    return 0;
+}
+
+LRESULT CCurlDeamonView::OnBnClickedCheckLoadholiday(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+    CButton checkbox = (CButton)GetDlgItem(IDC_CHECK_LOADHOLIDAY);
+    _Config.schedule_load_holiday = checkbox.GetCheck() != 0;
+    GetDlgItem(IDC_EDIT_HOLIDAYURL).EnableWindow(_Config.schedule_repeat_randomly && _Config.schedule_load_holiday);
 
     return 0;
 }

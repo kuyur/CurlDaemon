@@ -37,12 +37,18 @@ public:
         COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
         COMMAND_HANDLER(IDC_BUTTON_EXCUTE, BN_CLICKED, OnBnClickedButtonExcute)
         COMMAND_HANDLER(IDC_COMBO_METHOD, CBN_SELCHANGE, OnCbnSelchangeComboMethod)
+        COMMAND_HANDLER(IDC_CHECK_SENDRANDOMLY, BN_CLICKED, OnBnClickedCheckSendrandomly)
+        COMMAND_HANDLER(IDC_CHECK_LOADHOLIDAY, BN_CLICKED, OnBnClickedCheckLoadholiday)
     END_MSG_MAP()
 
     // DDX
     BEGIN_DDX_MAP(CCurlDeamonView)
         DDX_TEXT(IDC_EDIT_URL, _Config.http_url)
         DDX_TEXT(IDC_EDIT_CONTENT, _Config.http_sending_content)
+        DDX_CHECK(IDC_CHECK_SENDRANDOMLY, _Config.schedule_repeat_randomly)
+        DDX_CHECK(IDC_CHECK_IGNOREHOLIDAY, _Config.schedule_ignore_holiday)
+        DDX_CHECK(IDC_CHECK_LOADHOLIDAY, _Config.schedule_load_holiday)
+        DDX_TEXT(IDC_EDIT_HOLIDAYURL, _Config.schedule_holiday_url)
     END_DDX_MAP()
 
 // Handler prototypes (uncomment arguments if needed):
@@ -63,6 +69,8 @@ private:
 public:
     LRESULT OnBnClickedButtonExcute(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
     LRESULT OnCbnSelchangeComboMethod(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+    LRESULT OnBnClickedCheckSendrandomly(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+    LRESULT OnBnClickedCheckLoadholiday(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 };
 
 #endif
