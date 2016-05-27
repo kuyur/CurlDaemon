@@ -11,7 +11,7 @@
 #include "../common/win32helper.h"
 #include "config.h"
 #include "CurlDeamonView.h"
-#include "aboutdlg.h"
+#include "AboutDlg.h"
 #include "MainFrm.h"
 
 CAppModule _Module;

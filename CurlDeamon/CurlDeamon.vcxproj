@@ -140,6 +140,7 @@
     <ClInclude Include="config.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="ResponseDlg.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="CurlDeamonView.h" />
   </ItemGroup>

@@ -42,6 +42,17 @@ BOOL load_config_file(TiXmlDocument * xmlfile, CConfig & config)
             config.http_method = HTTP_GET;
     }
 
+    // http-headers node
+    pElem = hXmlHandler.FirstChild("http-headers").Element();
+    if (!pElem) return FALSE;
+    pElem = pElem->FirstChildElement();
+    while (pElem != NULL)
+    {
+        if (pElem->GetText())
+            config.http_headers.push_back(CC4EncodeUTF8::convert2unicode(pElem->GetText(), strlen(pElem->GetText())).c_str());
+        pElem = pElem->NextSiblingElement();
+    }
+
     // http-sending-content node
     pElem = hXmlHandler.FirstChild("http-sending-content").Element();
     if (!pElem) return FALSE;
@@ -128,6 +139,17 @@ BOOL save_config_file(LPCTSTR config_path, const CConfig & config)
     }
     http_method->LinkEndChild(http_method_value);
     configure->LinkEndChild(http_method);
+
+    TiXmlElement *http_headers = new TiXmlElement("http-headers");
+    std::list<WTL::CString>::const_iterator iter = config.http_headers.begin();
+    for (; iter != config.http_headers.end(); ++iter)
+    {
+        TiXmlElement *http_header = new TiXmlElement("http-header");
+        TiXmlText *http_header_text = new TiXmlText(CC4EncodeUTF16::convert2utf8(*iter, iter->GetLength()).c_str());
+        http_header->LinkEndChild(http_header_text);
+        http_headers->LinkEndChild(http_header);
+    }
+    configure->LinkEndChild(http_headers);
 
     TiXmlElement *http_sending_content = new TiXmlElement("http-sending-content");
     TiXmlText *http_sending_content_value = new TiXmlText(CC4EncodeUTF16::convert2utf8(config.http_sending_content, config.http_sending_content.GetLength()).c_str());

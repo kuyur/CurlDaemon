@@ -18,7 +18,6 @@ class CCurlDeamonView : public CDialogImpl<CCurlDeamonView>, public CUpdateUI<CC
 private:
     std::unordered_map<int, RECT> m_itemRects; // Orignal size of dialog items
     RECT m_dlgRect;                            // Orinal rect of dialog
-    int m_httpMethodIndex;
 
 public:
     enum { IDD = IDD_MAIN_DIALOG };
@@ -37,12 +36,12 @@ public:
         MESSAGE_HANDLER(WM_SIZE, onDialogResize)
         COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
         COMMAND_HANDLER(IDC_BUTTON_EXCUTE, BN_CLICKED, OnBnClickedButtonExcute)
+        COMMAND_HANDLER(IDC_COMBO_METHOD, CBN_SELCHANGE, OnCbnSelchangeComboMethod)
     END_MSG_MAP()
 
     // DDX
     BEGIN_DDX_MAP(CCurlDeamonView)
         DDX_TEXT(IDC_EDIT_URL, _Config.http_url)
-        DDX_COMBO_INDEX(IDC_COMBO_METHOD, m_httpMethodIndex)
         DDX_TEXT(IDC_EDIT_CONTENT, _Config.http_sending_content)
     END_DDX_MAP()
 
@@ -60,9 +59,10 @@ private:
     void moveItem(int itemId, int deltaX, int deltaY);
     void resizeItem(int itemId, int deltaX, int deltaY);
     void updateConfig();
-    bool initCurlConn(CURL *conn, char *errorBuffer, std::string *buffer);
+    bool initCurlConn(CURL *conn, char *errorBuffer, std::string *buffer, curl_slist *header_list, const char* sending_content);
 public:
     LRESULT OnBnClickedButtonExcute(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+    LRESULT OnCbnSelchangeComboMethod(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 };
 
 #endif
