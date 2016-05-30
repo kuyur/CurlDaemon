@@ -13,6 +13,7 @@
 #define IDC_STATIC_SENDCONTENT          1003
 #define IDC_STATIC_TIMINGGROUP          1004
 #define IDC_STATIC_TO                   1005
+#define IDC_STATIC_NEXTEXECUTION        1006
 #define IDC_BUTTON_EDIT_COOKIE          1010
 #define IDC_BUTTON_EDIT_CONTENTTYPE     1011
 #define IDC_BUTTON_EDIT_FORM            1012
@@ -42,7 +43,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        209
 #define _APS_NEXT_COMMAND_VALUE         32775
-#define _APS_NEXT_CONTROL_VALUE         1027
+#define _APS_NEXT_CONTROL_VALUE         1028
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

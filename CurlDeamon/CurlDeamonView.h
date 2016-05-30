@@ -20,10 +20,11 @@ private:
     RECT m_dlgRect;                            // Orinal rect of dialog
     std::list<WTL::CString> m_logs;            // logs
     CConfig m_config;                          // config
+    time_t m_next_execution;                   // next execution time
 
 public:
     enum { IDD = IDD_MAIN_DIALOG };
-    CCurlDeamonView() : m_config(_Config) {};
+    CCurlDeamonView() : m_config(_Config), m_next_execution(-1) {};
     ~CCurlDeamonView() {};
 
     virtual BOOL PreTranslateMessage(MSG* pMsg);
@@ -43,6 +44,8 @@ public:
         COMMAND_HANDLER(IDC_CHECK_SENDRANDOMLY, BN_CLICKED, OnBnClickedCheckSendrandomly)
         COMMAND_HANDLER(IDC_CHECK_LOADHOLIDAY, BN_CLICKED, OnBnClickedCheckLoadholiday)
         MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
+        NOTIFY_HANDLER(IDC_DATETIMEPICKER_FROM, DTN_DATETIMECHANGE, OnDtnDatetimechangeDatetimepickerFrom)
+        NOTIFY_HANDLER(IDC_DATETIMEPICKER_TO, DTN_DATETIMECHANGE, OnDtnDatetimechangeDatetimepickerTo)
     END_MSG_MAP()
 
     // DDX
@@ -80,6 +83,8 @@ public:
     LRESULT OnBnClickedCheckLoadholiday(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
     LRESULT OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+    LRESULT OnDtnDatetimechangeDatetimepickerFrom(int /*idCtrl*/, LPNMHDR pNMHDR, BOOL& /*bHandled*/);
+    LRESULT OnDtnDatetimechangeDatetimepickerTo(int /*idCtrl*/, LPNMHDR pNMHDR, BOOL& /*bHandled*/);
 };
 
 #endif

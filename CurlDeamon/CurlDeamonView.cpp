@@ -75,6 +75,7 @@ LRESULT CCurlDeamonView::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
     GetDlgItem(IDC_CHECK_LOADHOLIDAY).EnableWindow(m_config.schedule_repeat_randomly);
     GetDlgItem(IDC_EDIT_HOLIDAYURL).EnableWindow(m_config.schedule_repeat_randomly && m_config.schedule_load_holiday);
 
+    int hour, minute, second = 0;
     // timer pickers
     time_t t = time(0);
     struct tm *now = localtime(&t);
@@ -82,13 +83,15 @@ LRESULT CCurlDeamonView::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
     from_time.wYear = now->tm_year + 1900;
     from_time.wMonth = now->tm_mon + 1;
     from_time.wDay = now->tm_mday;
-    from_time.wHour = 11;
-    from_time.wMinute = 0;
-    from_time.wSecond = 0;
+    swscanf(m_config.schedule_randomly_start, L"%d:%d:%d", &hour, &minute, &second);
+    from_time.wHour = hour;
+    from_time.wMinute = minute;
+    from_time.wSecond = second;
     SYSTEMTIME to_time(from_time);
-    to_time.wHour = 11;
-    to_time.wMinute = 30;
-    to_time.wSecond = 0;
+    swscanf(m_config.schedule_randomly_end, L"%d:%d:%d", &hour, &minute, &second);
+    to_time.wHour = hour;
+    to_time.wMinute = minute;
+    to_time.wSecond = second;
     CDateTimePickerCtrl from_time_picker = (CDateTimePickerCtrl)GetDlgItem(IDC_DATETIMEPICKER_FROM);
     CDateTimePickerCtrl to_time_picker = (CDateTimePickerCtrl)GetDlgItem(IDC_DATETIMEPICKER_TO);
     from_time_picker.SetSystemTime(GDT_VALID, &from_time);
@@ -120,7 +123,7 @@ LRESULT CCurlDeamonView::OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 
 void CCurlDeamonView::getDlgItemsRelativePosition()
 {
-    const int dlgItemCount = 26;
+    const int dlgItemCount = 27;
     static int IDs[dlgItemCount] = {
         IDC_STATIC_URL,
         IDC_STATIC_METHOD,
@@ -128,6 +131,7 @@ void CCurlDeamonView::getDlgItemsRelativePosition()
         IDC_STATIC_SENDCONTENT,
         IDC_STATIC_TIMINGGROUP,
         IDC_STATIC_TO,
+        IDC_STATIC_NEXTEXECUTION,
         IDC_BUTTON_EDIT_COOKIE,
         IDC_BUTTON_EDIT_CONTENTTYPE,
         IDC_BUTTON_EDIT_FORM,
@@ -191,7 +195,7 @@ void CCurlDeamonView::execute(const CConfig &config, bool scheduled)
     time_t t = time(0);
     struct tm *now = localtime(&t);
     wchar_t ts_buffer[256] = { 0 };
-    wcsftime(ts_buffer, sizeof(ts_buffer), L"%F %T %z ", now);
+    wcsftime(ts_buffer, sizeof(ts_buffer), L"%F %T %z", now);
 
     char errorBuffer[CURL_ERROR_SIZE];
     std::string buffer;
@@ -381,8 +385,39 @@ void CCurlDeamonView::makeCronSchedule()
 
 void CCurlDeamonView::makeRandomSchedule()
 {
+    time_t current = time(0);
+    int hour, minute, second = 0;
+
+    time_t start = current;
+    struct tm *ts = localtime(&start);
+    swscanf(_Config.schedule_randomly_start, L"%d:%d:%d", &hour, &minute, &second);
+    ts->tm_hour = hour;
+    ts->tm_min = minute;
+    ts->tm_sec = second;
+    start = mktime(ts);
+    if (start < current)
+        start += 24 * 3600;
+
+    time_t end = start;
+    ts = localtime(&end);
+    swscanf(_Config.schedule_randomly_end, L"%d:%d:%d", &hour, &minute, &second);
+    ts->tm_hour = hour;
+    ts->tm_min = minute;
+    ts->tm_sec = second;
+    end = mktime(ts);
+    if (end < start)
+        end += 24 * 3600;
+
     // determine next execute time
-    // TODO
+    m_next_execution = (rand() % (end - start + 1)) + start;
+
+    // update static text
+    ts = localtime(&m_next_execution);
+    wchar_t ts_buffer[256] = { 0 };
+    wcsftime(ts_buffer, sizeof(ts_buffer), L"%F %T %z", ts);
+    WTL::CString str = L"Next: ";
+    str += ts_buffer;
+    GetDlgItem(IDC_STATIC_NEXTEXECUTION).SetWindowText(str);
 
     // recreate timer (check every one second)
     SetTimer(1, 1000);
@@ -415,6 +450,7 @@ LRESULT CCurlDeamonView::onDialogResize(UINT, WPARAM, LPARAM, BOOL&)
     moveItem(IDC_CHECK_SENDRANDOMLY, 0, deltaY);
     moveItem(IDC_DATETIMEPICKER_FROM, 0, deltaY);
     moveItem(IDC_STATIC_TO, 0, deltaY);
+    moveItem(IDC_STATIC_NEXTEXECUTION, 0, deltaY);
     moveItem(IDC_DATETIMEPICKER_TO, 0, deltaY);
     moveItem(IDC_BUTTON_EXCUTE, deltaX, deltaY);
     moveItem(IDC_BUTTON_RESET, deltaX, deltaY);
@@ -444,6 +480,8 @@ LRESULT CCurlDeamonView::OnBnClickedButtonExcute(WORD /*wNotifyCode*/, WORD /*wI
     else
     {
         KillTimer(1);
+        m_next_execution = -1;
+        GetDlgItem(IDC_STATIC_NEXTEXECUTION).SetWindowText(L"");
         execute(_Config, false);
     }
 
@@ -484,12 +522,21 @@ LRESULT CCurlDeamonView::OnBnClickedCheckLoadholiday(WORD /*wNotifyCode*/, WORD 
 
 LRESULT CCurlDeamonView::OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-    // check hitting next execution time or not
-    // TODO
-    bool hit = true;
+    if (m_next_execution <= 0)
+        return 0;
 
-    if (hit)
-        execute(_Config, true);
+    // check hitting next execution time or not
+    time_t now = time(0);
+    if (now < m_next_execution)
+        return 0;
+
+    KillTimer(1);
+    execute(_Config, true);
+
+    if (_Config.schedule_repeat_cron_like)
+        makeCronSchedule();
+    else if (_Config.schedule_repeat_randomly)
+        makeRandomSchedule();
 
     return 0;
 }
@@ -497,6 +544,48 @@ LRESULT CCurlDeamonView::OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 LRESULT CCurlDeamonView::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
     KillTimer(1);
+
+    return 0;
+}
+
+
+LRESULT CCurlDeamonView::OnDtnDatetimechangeDatetimepickerFrom(int /*idCtrl*/, LPNMHDR pNMHDR, BOOL& /*bHandled*/)
+{
+    LPNMDATETIMECHANGE pDTChange = reinterpret_cast<LPNMDATETIMECHANGE>(pNMHDR);
+    CDateTimePickerCtrl from_time_picker = (CDateTimePickerCtrl)GetDlgItem(IDC_DATETIMEPICKER_FROM);
+    SYSTEMTIME from_time = { 0 };
+    from_time_picker.GetSystemTime(&from_time);
+    struct tm t = { 0 };
+    t.tm_year = from_time.wYear - 1900;
+    t.tm_mon = from_time.wMonth - 1;
+    t.tm_mday = from_time.wDay;
+    t.tm_hour = from_time.wHour;
+    t.tm_min = from_time.wMinute;
+    t.tm_sec = from_time.wSecond;
+    wchar_t buffer[10] = { 0 };
+    wcsftime(buffer, 10, L"%H:%M:%S", &t);
+    m_config.schedule_randomly_start = buffer;
+
+    return 0;
+}
+
+
+LRESULT CCurlDeamonView::OnDtnDatetimechangeDatetimepickerTo(int /*idCtrl*/, LPNMHDR pNMHDR, BOOL& /*bHandled*/)
+{
+    LPNMDATETIMECHANGE pDTChange = reinterpret_cast<LPNMDATETIMECHANGE>(pNMHDR);
+    CDateTimePickerCtrl to_time_picker = (CDateTimePickerCtrl)GetDlgItem(IDC_DATETIMEPICKER_TO);
+    SYSTEMTIME to_time = { 0 };
+    to_time_picker.GetSystemTime(&to_time);
+    struct tm t = { 0 };
+    t.tm_year = to_time.wYear - 1900;
+    t.tm_mon = to_time.wMonth - 1;
+    t.tm_mday = to_time.wDay;
+    t.tm_hour = to_time.wHour;
+    t.tm_min = to_time.wMinute;
+    t.tm_sec = to_time.wSecond;
+    wchar_t buffer[10] = { 0 };
+    wcsftime(buffer, 10, L"%H:%M:%S", &t);
+    m_config.schedule_randomly_end = buffer;
 
     return 0;
 }

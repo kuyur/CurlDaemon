@@ -91,6 +91,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
     config_path += L"config-curl-deamon.xml";
     load_config(config_path);
 
+    srand(time(0));
     int nRet = Run(lpstrCmdLine, nCmdShow);
     save_config_file(config_path, _Config);
 
