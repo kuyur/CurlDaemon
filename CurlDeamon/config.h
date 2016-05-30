@@ -19,6 +19,18 @@ enum HTTP_METHOD {
     HTTP_OPTIONS = (int) 0x05
 };
 
+static const char * http_method_to_char(HTTP_METHOD method)
+{
+    static char * HTTP_METHOD_NAMES[6] = { "GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS" };
+    return HTTP_METHOD_NAMES[static_cast<int>(method)];
+};
+
+static const wchar_t * http_method_to_wchar(HTTP_METHOD method)
+{
+    static wchar_t * HTTP_METHOD_NAMES_W[6] = { L"GET", L"POST", L"PUT", L"DELETE", L"HEAD", L"OPTIONS" };
+    return HTTP_METHOD_NAMES_W[static_cast<int>(method)];
+};
+
 typedef struct CConfig_tag
 {
     WTL::CString            http_url;

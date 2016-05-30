@@ -3,6 +3,8 @@
 #include "resource.h"
 #include "CurlDeamonView.h"
 #include "ResponseDlg.h"
+#include "../common/win32helper.h"
+#include "../common/winfile.h"
 
 BOOL CCurlDeamonView::PreTranslateMessage(MSG* pMsg)
 {
@@ -39,7 +41,7 @@ LRESULT CCurlDeamonView::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
     combo.InsertString(-1, L"DELETE");
     combo.InsertString(-1, L"HEAD");
     combo.InsertString(-1, L"OPTIONS");
-    combo.SetCurSel(static_cast<int>(_Config.http_method));
+    combo.SetCurSel(static_cast<int>(m_config.http_method));
 
     // initialize header list
     CListViewCtrl list = (CListViewCtrl)GetDlgItem(IDC_LIST_HEADERS);
@@ -47,12 +49,12 @@ LRESULT CCurlDeamonView::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
     list.InsertColumn(1, L"Header Value", LVCFMT_LEFT, 250);
 
     CEdit editContent = (CEdit)GetDlgItem(IDC_EDIT_CONTENT);
-    if (_Config.http_method == HTTP_POST || _Config.http_method == HTTP_PUT)
+    if (m_config.http_method == HTTP_POST || m_config.http_method == HTTP_PUT)
         editContent.EnableWindow(true);
-    if (_Config.http_headers.size() > 0)
+    if (m_config.http_headers.size() > 0)
     {
-        std::list<WTL::CString>::iterator iter = _Config.http_headers.begin();
-        for (int i = 0; iter != _Config.http_headers.end(); ++iter, ++i)
+        std::list<WTL::CString>::iterator iter = m_config.http_headers.begin();
+        for (int i = 0; iter != m_config.http_headers.end(); ++iter, ++i)
         {
             int index = iter->Find(L':');
             WTL::CString header_name = iter->Left(index);
@@ -67,14 +69,13 @@ LRESULT CCurlDeamonView::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
         }
     }
 
-    GetDlgItem(IDC_DATETIMEPICKER_FROM).EnableWindow(_Config.schedule_repeat_randomly);
-    GetDlgItem(IDC_DATETIMEPICKER_TO).EnableWindow(_Config.schedule_repeat_randomly);
-    GetDlgItem(IDC_CHECK_IGNOREHOLIDAY).EnableWindow(_Config.schedule_repeat_randomly);
-    GetDlgItem(IDC_CHECK_LOADHOLIDAY).EnableWindow(_Config.schedule_repeat_randomly);
-    GetDlgItem(IDC_EDIT_HOLIDAYURL).EnableWindow(_Config.schedule_repeat_randomly && _Config.schedule_load_holiday);
+    GetDlgItem(IDC_DATETIMEPICKER_FROM).EnableWindow(m_config.schedule_repeat_randomly);
+    GetDlgItem(IDC_DATETIMEPICKER_TO).EnableWindow(m_config.schedule_repeat_randomly);
+    GetDlgItem(IDC_CHECK_IGNOREHOLIDAY).EnableWindow(m_config.schedule_repeat_randomly);
+    GetDlgItem(IDC_CHECK_LOADHOLIDAY).EnableWindow(m_config.schedule_repeat_randomly);
+    GetDlgItem(IDC_EDIT_HOLIDAYURL).EnableWindow(m_config.schedule_repeat_randomly && m_config.schedule_load_holiday);
 
     // timer pickers
-
     time_t t = time(0);
     struct tm *now = localtime(&t);
     SYSTEMTIME from_time = { 0 };
@@ -93,9 +94,15 @@ LRESULT CCurlDeamonView::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
     from_time_picker.SetSystemTime(GDT_VALID, &from_time);
     to_time_picker.SetSystemTime(GDT_VALID, &to_time);
 
-    // focus on excute button
+    // focus on execute button
     CButton button = (CButton)GetDlgItem(IDC_BUTTON_EXCUTE);
     button.SetFocus();
+
+    // create schedule job
+    if (_Config.schedule_repeat_cron_like)
+        makeCronSchedule();
+    else if (_Config.schedule_repeat_randomly)
+        makeRandomSchedule();
 
     return FALSE;
 }
@@ -175,6 +182,94 @@ void CCurlDeamonView::resizeItem(int itemId, int deltaX, int deltaY)
 void CCurlDeamonView::updateConfig()
 {
     DoDataExchange(true);
+    _Config = m_config;
+}
+
+void CCurlDeamonView::execute(const CConfig &config, bool scheduled)
+{
+    // get sending timestamp
+    time_t t = time(0);
+    struct tm *now = localtime(&t);
+    wchar_t ts_buffer[256] = { 0 };
+    wcsftime(ts_buffer, sizeof(ts_buffer), L"%F %T %z ", now);
+
+    char errorBuffer[CURL_ERROR_SIZE];
+    std::string buffer;
+
+    struct curl_slist *list = NULL;
+    if (config.http_headers.size() > 0)
+    {
+        std::list<WTL::CString>::const_iterator iter = config.http_headers.begin();
+        for (; iter != config.http_headers.end(); ++iter)
+            list = curl_slist_append(list, CC4EncodeUTF16::convert2utf8(*iter, iter->GetLength()).c_str());
+    }
+    std::string sending_content = CC4EncodeUTF16::convert2utf8(config.http_sending_content, config.http_sending_content.GetLength());
+
+    CURL *conn = curl_easy_init();
+    CURLcode code;
+    if (initCurlConn(conn, errorBuffer, &buffer, config.http_method, config.http_url, list, sending_content.c_str()))
+        code = curl_easy_perform(conn);
+    if (list != NULL)
+        curl_slist_free_all(list);
+
+    // [Timer][2016-05-30 20:40:28 +0900] "GET http://example.com/" 200
+    WTL::CString log = scheduled ? L"[Timer][" : L"[";
+    log += ts_buffer;
+    log += L"] \"";
+    log += http_method_to_wchar(config.http_method);
+    log += L" ";
+    log += config.http_url;
+    log += L"\" ";
+
+    if (code != CURLE_OK)
+    {
+        curl_easy_cleanup(conn);
+        // error happen
+        log += curl_easy_strerror(code);
+        log += "\n";
+    }
+    else
+    {
+        // parse response header
+        long response_code = 0;
+        curl_easy_getinfo(conn, CURLINFO_RESPONSE_CODE, &response_code);
+        curl_easy_cleanup(conn);
+
+        log.Append(response_code);
+        log += L"\n";
+    }
+    m_logs.push_back(log);
+    // append to log file
+    WTL::CString log_file_path(GetProcessFolder());
+    log_file_path += L"curldeamon.log";
+    CWinFile file(log_file_path, CWinFile::modeWrite | CWinFile::shareDenyWrite | CWinFile::openAppend);
+    if (file.open())
+    {
+        std::string utf8_log = CC4EncodeUTF16::convert2utf8(log, log.GetLength());
+        file.write(utf8_log.c_str(), utf8_log.length());
+        file.close();
+    }
+
+    if (!scheduled)
+    {
+        if (code != CURLE_OK)
+        {
+            WTL::CString msg = L"Failed to perform ";
+            msg += http_method_to_wchar(config.http_method);
+            msg += " request for ";
+            msg += config.http_url;
+            msg += L". ";
+            msg += curl_easy_strerror(code);
+            msg += L".";
+            MessageBox(msg);
+        }
+        else
+        {
+            WTL::CString buf(buffer.c_str());
+            CResponseDlg dialog(buf);
+            dialog.DoModal();
+        }
+    }
 }
 
 static int writer(char *data, size_t size, size_t nmemb, std::string *writerData)
@@ -187,9 +282,9 @@ static int writer(char *data, size_t size, size_t nmemb, std::string *writerData
     return size * nmemb;
 }
 
-bool CCurlDeamonView::initCurlConn(CURL *conn, char *errorBuffer, std::string *buffer, curl_slist *header_list, const char* sending_content)
+bool CCurlDeamonView::initCurlConn(CURL *conn, char *errorBuffer, std::string *buffer, HTTP_METHOD http_method, WTL::CString http_url, curl_slist *header_list, const char* sending_content)
 {
-    std::string url = CC4EncodeUTF16::convert2utf8(_Config.http_url, _Config.http_url.GetLength());
+    std::string url = CC4EncodeUTF16::convert2utf8(http_url, http_url.GetLength());
 
     CURLcode code;
 
@@ -230,18 +325,18 @@ bool CCurlDeamonView::initCurlConn(CURL *conn, char *errorBuffer, std::string *b
     }
 
     // http method
-    if (_Config.http_method == HTTP_GET)
+    if (http_method == HTTP_GET)
         curl_easy_setopt(conn, CURLOPT_HTTPGET, 1L);
-    else if (_Config.http_method == HTTP_PUT)
+    else if (http_method == HTTP_PUT)
         curl_easy_setopt(conn, CURLOPT_CUSTOMREQUEST, "PUT");
-    else if (_Config.http_method == HTTP_DELETE)
+    else if (http_method == HTTP_DELETE)
         curl_easy_setopt(conn, CURLOPT_CUSTOMREQUEST, "DELETE");
-    else if (_Config.http_method == HTTP_HEAD)
+    else if (http_method == HTTP_HEAD)
         curl_easy_setopt(conn, CURLOPT_NOBODY, 1L);
-    else if (_Config.http_method == HTTP_OPTIONS)
+    else if (http_method == HTTP_OPTIONS)
         curl_easy_setopt(conn, CURLOPT_CUSTOMREQUEST, "OPTIONS");
 
-    if (_Config.http_method == HTTP_POST)
+    if (http_method == HTTP_POST)
     {
         if (sending_content != NULL && strlen(sending_content) > 0)
         {
@@ -277,6 +372,20 @@ bool CCurlDeamonView::initCurlConn(CURL *conn, char *errorBuffer, std::string *b
     }
 
     return true;
+}
+
+void CCurlDeamonView::makeCronSchedule()
+{
+    // TODO
+}
+
+void CCurlDeamonView::makeRandomSchedule()
+{
+    // determine next execute time
+    // TODO
+
+    // recreate timer (check every one second)
+    SetTimer(1, 1000);
 }
 
 LRESULT CCurlDeamonView::onDialogResize(UINT, WPARAM, LPARAM, BOOL&)
@@ -328,35 +437,15 @@ LRESULT CCurlDeamonView::OnBnClickedButtonExcute(WORD /*wNotifyCode*/, WORD /*wI
 {
     updateConfig();
 
-    char errorBuffer[CURL_ERROR_SIZE];
-    std::string buffer;
-
-    struct curl_slist *list = NULL;
-    if (_Config.http_headers.size() > 0)
+    if (_Config.schedule_repeat_cron_like)
+        makeCronSchedule();
+    else if (_Config.schedule_repeat_randomly)
+        makeRandomSchedule();
+    else
     {
-        std::list<WTL::CString>::iterator iter = _Config.http_headers.begin();
-        for (; iter != _Config.http_headers.end(); ++iter)
-            list = curl_slist_append(list, CC4EncodeUTF16::convert2utf8(*iter, iter->GetLength()).c_str());
+        KillTimer(1);
+        execute(_Config, false);
     }
-    std::string sending_content = CC4EncodeUTF16::convert2utf8(_Config.http_sending_content, _Config.http_sending_content.GetLength());
-
-    CURL *conn = curl_easy_init();
-    CURLcode code;
-    if (initCurlConn(conn, errorBuffer, &buffer, list, sending_content.c_str()))
-    {
-        code = curl_easy_perform(conn);
-    }
-    if (conn != NULL)
-    {
-        curl_easy_cleanup(conn);
-    }
-    if (list != NULL)
-    {
-        curl_slist_free_all(list);
-    }
-    WTL::CString buf(buffer.c_str());
-    CResponseDlg dialog(buf);
-    dialog.DoModal();
 
     return 0;
 }
@@ -364,9 +453,9 @@ LRESULT CCurlDeamonView::OnBnClickedButtonExcute(WORD /*wNotifyCode*/, WORD /*wI
 LRESULT CCurlDeamonView::OnCbnSelchangeComboMethod(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
     CComboBox combo = (CComboBox)GetDlgItem(IDC_COMBO_METHOD);
-    _Config.http_method = static_cast<HTTP_METHOD>(combo.GetCurSel());
+    m_config.http_method = static_cast<HTTP_METHOD>(combo.GetCurSel());
 
-    GetDlgItem(IDC_EDIT_CONTENT).EnableWindow(_Config.http_method == HTTP_POST || _Config.http_method == HTTP_PUT);
+    GetDlgItem(IDC_EDIT_CONTENT).EnableWindow(m_config.http_method == HTTP_POST || m_config.http_method == HTTP_PUT);
 
     return 0;
 }
@@ -374,12 +463,12 @@ LRESULT CCurlDeamonView::OnCbnSelchangeComboMethod(WORD /*wNotifyCode*/, WORD /*
 LRESULT CCurlDeamonView::OnBnClickedCheckSendrandomly(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
     CButton checkbox = (CButton)GetDlgItem(IDC_CHECK_SENDRANDOMLY);
-    _Config.schedule_repeat_randomly = checkbox.GetCheck() != 0;
-    GetDlgItem(IDC_DATETIMEPICKER_FROM).EnableWindow(_Config.schedule_repeat_randomly);
-    GetDlgItem(IDC_DATETIMEPICKER_TO).EnableWindow(_Config.schedule_repeat_randomly);
-    GetDlgItem(IDC_CHECK_IGNOREHOLIDAY).EnableWindow(_Config.schedule_repeat_randomly);
-    GetDlgItem(IDC_CHECK_LOADHOLIDAY).EnableWindow(_Config.schedule_repeat_randomly);
-    GetDlgItem(IDC_EDIT_HOLIDAYURL).EnableWindow(_Config.schedule_repeat_randomly && _Config.schedule_load_holiday);
+    m_config.schedule_repeat_randomly = checkbox.GetCheck() != 0;
+    GetDlgItem(IDC_DATETIMEPICKER_FROM).EnableWindow(m_config.schedule_repeat_randomly);
+    GetDlgItem(IDC_DATETIMEPICKER_TO).EnableWindow(m_config.schedule_repeat_randomly);
+    GetDlgItem(IDC_CHECK_IGNOREHOLIDAY).EnableWindow(m_config.schedule_repeat_randomly);
+    GetDlgItem(IDC_CHECK_LOADHOLIDAY).EnableWindow(m_config.schedule_repeat_randomly);
+    GetDlgItem(IDC_EDIT_HOLIDAYURL).EnableWindow(m_config.schedule_repeat_randomly && m_config.schedule_load_holiday);
 
     return 0;
 }
@@ -387,8 +476,27 @@ LRESULT CCurlDeamonView::OnBnClickedCheckSendrandomly(WORD /*wNotifyCode*/, WORD
 LRESULT CCurlDeamonView::OnBnClickedCheckLoadholiday(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
     CButton checkbox = (CButton)GetDlgItem(IDC_CHECK_LOADHOLIDAY);
-    _Config.schedule_load_holiday = checkbox.GetCheck() != 0;
-    GetDlgItem(IDC_EDIT_HOLIDAYURL).EnableWindow(_Config.schedule_repeat_randomly && _Config.schedule_load_holiday);
+    m_config.schedule_load_holiday = checkbox.GetCheck() != 0;
+    GetDlgItem(IDC_EDIT_HOLIDAYURL).EnableWindow(m_config.schedule_repeat_randomly && m_config.schedule_load_holiday);
+
+    return 0;
+}
+
+LRESULT CCurlDeamonView::OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+    // check hitting next execution time or not
+    // TODO
+    bool hit = true;
+
+    if (hit)
+        execute(_Config, true);
+
+    return 0;
+}
+
+LRESULT CCurlDeamonView::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+    KillTimer(1);
 
     return 0;
 }

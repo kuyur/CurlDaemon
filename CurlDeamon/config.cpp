@@ -113,30 +113,7 @@ BOOL save_config_file(LPCTSTR config_path, const CConfig & config)
     configure->LinkEndChild(http_url);
 
     TiXmlElement *http_method = new TiXmlElement("http-method");
-    TiXmlText *http_method_value;
-    switch (config.http_method)
-    {
-    case HTTP_GET:
-        http_method_value = new TiXmlText("GET");
-        break;
-    case HTTP_POST:
-        http_method_value = new TiXmlText("POST");
-        break;
-    case HTTP_PUT:
-        http_method_value = new TiXmlText("PUT");
-        break;
-    case HTTP_DELETE:
-        http_method_value = new TiXmlText("DELETE");
-        break;
-    case HTTP_HEAD:
-        http_method_value = new TiXmlText("HEAD");
-        break;
-    case HTTP_OPTIONS:
-        http_method_value = new TiXmlText("OPTIONS");
-        break;
-    default:
-        http_method_value = new TiXmlText("GET");
-    }
+    TiXmlText *http_method_value = new TiXmlText(http_method_to_char(config.http_method));
     http_method->LinkEndChild(http_method_value);
     configure->LinkEndChild(http_method);
 
