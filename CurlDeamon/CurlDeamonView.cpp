@@ -397,6 +397,23 @@ void CCurlDeamonView::makeRandomSchedule()
     start = mktime(ts);
     if (start < current)
         start += 24 * 3600;
+    // if flag of ignore holiday is true, for time range which is crossing a day, for example
+    // 23:30:00 - 00:30:00, schedule will be carried out in time range of:
+    // Monday    23:30:00 - Tuesday   00:30:00
+    // Tuesday   23:30:00 - Wednesday 00:30:00
+    // Wednesday 23:30:00 - Thursday  00:30:00
+    // Thursday  23:30:00 - Friday    00:30:00
+    // Friday    23:30:00 - Saturday  00:30:00
+    if (_Config.schedule_ignore_holiday)
+    {
+        // get weekday
+        struct tm *local_start = localtime(&start);
+        // jump to Monday
+        if (local_start->tm_wday == 0)
+            start += 24 * 3600;
+        else if (local_start->tm_wday == 6)
+            start += 2 * 24 * 3600;
+    }
 
     time_t end = start;
     ts = localtime(&end);
