@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<config>
+    <http-url>http://example.com/</http-url>
+    <http-method>POST</http-method>
+    <http-headers>
+        <http-header>Accept: text/html,application/xhtml+xml,application/xml</http-header>
+        <http-header>User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36</http-header>
+        <http-header>Connection: keep-alive</http-header>
+        <http-header>Origin: http://example.com/</http-header>
+        <http-header>Referer: http://example.com/</http-header>
+        <http-header>Content-Type: application/x-www-form-urlencoded</http-header>
+    </http-headers>
+    <http-sending-content>foo=bar&amp;test=true</http-sending-content>
+    <schedule-repeat-type>randomly</schedule-repeat-type>
+    <schedule-ignore-holiday>true</schedule-ignore-holiday>
+    <schedule-load-holiday>false</schedule-load-holiday>
+    <schedule-holiday-url>http://example.com/holidays.txt</schedule-holiday-url>
+    <schedule-randomly-start>11:30:00</schedule-randomly-start>
+    <schedule-randomly-end>11:50:00</schedule-randomly-end>
+</config>
