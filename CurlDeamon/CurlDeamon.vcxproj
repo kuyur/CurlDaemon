@@ -134,6 +134,7 @@
     <ClCompile Include="CurlDeamonView.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\utils.h" />
     <ClInclude Include="..\common\win32helper.h" />
     <ClInclude Include="..\common\winfile.h" />
     <ClInclude Include="AboutDlg.h" />

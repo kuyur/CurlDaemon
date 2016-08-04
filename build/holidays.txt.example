@@ -1,0 +1,9 @@
+# Deploy this file at remote server.
+
+# One line for one holiday.
+# Date pattern: yyyy-MM-dd, for example, 2016-08-03
+# If month or day only contains a single digit, should pad 0 at head.
+
+# # for comment out.
+
+#2016-08-11

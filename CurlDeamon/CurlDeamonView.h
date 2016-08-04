@@ -74,6 +74,8 @@ private:
     void updateConfig();
     void makeCronSchedule();
     void makeRandomSchedule();
+    bool isTodayCustomHoliday(WTL::CString holiday_url);
+    bool checkTodayHoliday(const std::string &custom_holidays);
     void execute(const CConfig &config, bool scheduled);
     bool initCurlConn(CURL *conn, char *errorBuffer, std::string *buffer, HTTP_METHOD http_method, WTL::CString http_url, curl_slist *header_list, const char* sending_content);
 public:

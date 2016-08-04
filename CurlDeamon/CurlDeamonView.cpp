@@ -3,6 +3,7 @@
 #include "resource.h"
 #include "CurlDeamonView.h"
 #include "ResponseDlg.h"
+#include "../common/utils.h"
 #include "../common/win32helper.h"
 #include "../common/winfile.h"
 
@@ -189,8 +190,117 @@ void CCurlDeamonView::updateConfig()
     _Config = m_config;
 }
 
+bool CCurlDeamonView::isTodayCustomHoliday(WTL::CString holiday_url)
+{
+    if (holiday_url.GetLength() == 0) return false;
+    if (holiday_url.Find(L"http://") != 0 && holiday_url.Find(L"https://") != 0) return false;
+
+    int pos = holiday_url.Find(L"/", 7);
+    WTL::CString host = pos == -1 ? holiday_url : holiday_url.Left(pos);
+    host = L"Origin: " + host;
+    WTL::CString referer = L"Referer: " + holiday_url;
+
+    // get sending timestamp
+    time_t t = time(0);
+    struct tm *now = localtime(&t);
+    wchar_t ts_buffer[256] = { 0 };
+    wcsftime(ts_buffer, sizeof(ts_buffer), L"%F %T %z", now);
+
+    char errorBuffer[CURL_ERROR_SIZE];
+    std::string buffer;
+
+    struct curl_slist *list = NULL;
+    list = curl_slist_append(list, "Accept: text/html,application/xhtml+xml,application/xml");
+    list = curl_slist_append(list, "User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36");
+    list = curl_slist_append(list, "Connection: keep-alive");
+    list = curl_slist_append(list, CC4EncodeUTF16::convert2utf8(host, host.GetLength()).c_str());
+    list = curl_slist_append(list, CC4EncodeUTF16::convert2utf8(referer, referer.GetLength()).c_str());
+
+    CURL *conn = curl_easy_init();
+    CURLcode code;
+    if (initCurlConn(conn, errorBuffer, &buffer, HTTP_GET, holiday_url, list, NULL))
+        code = curl_easy_perform(conn);
+
+    curl_slist_free_all(list);
+    list = NULL;
+
+    // [Timer][2016-05-30 20:40:28 +0900] "GET http://example.com/" 200
+    WTL::CString log = L"[Timer][";
+    log += ts_buffer;
+    log += L"] \"";
+    log += http_method_to_wchar(HTTP_GET);
+    log += L" ";
+    log += holiday_url;
+    log += L"\" ";
+
+    if (code != CURLE_OK)
+    {
+        curl_easy_cleanup(conn);
+        // error happen
+        log += curl_easy_strerror(code);
+        log += "\n";
+    }
+    else
+    {
+        // parse response header
+        long response_code = 0;
+        curl_easy_getinfo(conn, CURLINFO_RESPONSE_CODE, &response_code);
+        curl_easy_cleanup(conn);
+
+        log.Append(response_code);
+        log += L"\n";
+    }
+
+    m_logs.push_back(log);
+    // append to log file
+    WTL::CString log_file_path(GetProcessFolder());
+    log_file_path += L"curldeamon.log";
+    CWinFile file(log_file_path, CWinFile::modeWrite | CWinFile::shareDenyWrite | CWinFile::openAppend);
+    if (file.open())
+    {
+        std::string utf8_log = CC4EncodeUTF16::convert2utf8(log, log.GetLength());
+        file.write(utf8_log.c_str(), utf8_log.length());
+        file.close();
+    }
+
+    if (code != CURLE_OK) return false;
+
+    // user should ensure that it returns a utf-8 response without BOM for holiday_url, and only contains printable ascii characters.
+    std::replace(buffer.begin(), buffer.end(), '\r', '\n');
+    return checkTodayHoliday(buffer);
+}
+
+bool CCurlDeamonView::checkTodayHoliday(const std::string &custom_holidays)
+{
+    // custom_holidays must be a list split by \n, such as:
+    //   # for comment
+    //   2016-08-11
+    //   2016-08-12
+    std::stringstream ss(custom_holidays);
+    std::unordered_map<std::string, boolean> map;
+    std::string line;
+    while (std::getline(ss, line, '\n')) {
+        trim(line);
+        if (line.length() > 0 && line[0] != '#') {
+            map[line] = true;
+        }
+    }
+    if (map.size() == 0) return false;
+
+    // get today
+    time_t t = time(0);
+    struct tm *now = localtime(&t);
+    char ts_buffer[256] = { 0 };
+    strftime(ts_buffer, sizeof(ts_buffer), "%F", now);
+    std::string today(ts_buffer);
+
+    return map.find(today) != map.end();
+}
+
 void CCurlDeamonView::execute(const CConfig &config, bool scheduled)
 {
+    if (scheduled && config.schedule_load_holiday && isTodayCustomHoliday(config.schedule_holiday_url)) return;
+
     // get sending timestamp
     time_t t = time(0);
     struct tm *now = localtime(&t);
@@ -549,6 +659,7 @@ LRESULT CCurlDeamonView::OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 
     KillTimer(1);
     execute(_Config, true);
+    ::Sleep(1000);
 
     if (_Config.schedule_repeat_cron_like)
         makeCronSchedule();
