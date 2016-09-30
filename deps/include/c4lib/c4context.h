@@ -20,8 +20,8 @@
 #define C4CONTEXT_H_
 
 #include <list>
+#include <tinyxml/tinyxml.h>
 #include "c4encode.h"
-#include "tinyxml.h"
 
 class CC4Context
 {
