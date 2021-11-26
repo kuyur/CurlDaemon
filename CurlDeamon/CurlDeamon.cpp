@@ -44,7 +44,7 @@ void load_config(const WTL::CString &config_path)
             save_config_file(config_path, _Config);
         }
 
-        delete[]file_buffer;
+        delete []file_buffer;
         delete doc;
     }
 }
