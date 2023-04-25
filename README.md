@@ -1,4 +1,4 @@
-CurlDeamon
+CurlDaemon
 ==========
 
-A deamon program to send http request periodically by using libcurl
+A daemon program to send http request periodically by using libcurl
